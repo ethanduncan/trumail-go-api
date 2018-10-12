@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
 	"github.com/gorilla/mux"
 	trumail "github.com/sdwolfe32/trumail/verifier"
 )
@@ -24,13 +25,13 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	var email Email
 	err := decoder.Decode(&email)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), 500)
+	} else {
+		val := Must(v.Verify(email.Email))
+		log.Println(val)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(val)
 	}
-	val := Must(v.Verify(email.Email))
-	log.Println(val)
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(val)
 }
 
 func Must(l *trumail.Lookup, err error) *trumail.Lookup {
