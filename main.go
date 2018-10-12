@@ -27,16 +27,13 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	} else {
-		val := Must(v.Verify(email.Email))
-		log.Println(val)
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(val)
+		val, err := v.Verify(email.Email)
+		if err != nil || val.Deliverable != true {
+			http.Error(w, err.Error(), 400)
+		} else {
+			log.Println(val)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(val)
+		}
 	}
-}
-
-func Must(l *trumail.Lookup, err error) *trumail.Lookup {
-	if err != nil {
-		panic(err)
-	}
-	return l
 }
